@@ -56,7 +56,7 @@ with g.as_default():
     tf.set_random_seed(random_seed)
 
     # Input data
-    tf_x = tf.placeholder(tf.float32, [None, input_size], name='inputs')
+    tf_x = tf.placeholder(tf.float32, [None, input_size], name='input')
     input_layer = tf.reshape(tf_x, shape=[-1, image_width, image_width, 1])
 
     ###########
@@ -141,7 +141,7 @@ with tf.Session(graph=g) as sess:
 
         for i in range(total_batch):
             batch_x, batch_y = mnist.train.next_batch(batch_size)
-            _, c = sess.run(['train', 'cost:0'], feed_dict={'inputs:0': batch_x})
+            _, c = sess.run(['train', 'cost:0'], feed_dict={'input:0': batch_x})
             avg_cost += c
 
             if not i % print_interval:
@@ -169,10 +169,30 @@ test_images = mnist.test.images[:n_images]
 
 with tf.Session(graph=g) as sess:
     saver.restore(sess, save_path='./autoencoder.ckpt')
-    decoded = sess.run('decoding:0', feed_dict={'inputs:0': test_images})
+    decoded = sess.run('decoding:0', feed_dict={'input:0': test_images})
+
+    input_graph_def = tf.get_default_graph().as_graph_def()
+    output_graph_def = tf.graph_util.convert_variables_to_constants(
+        sess,  # The session
+        input_graph_def,  # input_graph_def is useful for retrieving the nodes
+        "decoding".split(",")
+    )
+with tf.gfile.FastGFile('./ae-conv.pb', "wb") as f:
+    f.write(output_graph_def.SerializeToString())
 
 for i in range(n_images):
     for ax, img in zip(axes, [test_images, decoded]):
         ax[i].imshow(img[i].reshape((image_width, image_width)), cmap='binary')
 
 plt.savefig("result_ae-conv.png")
+"""
+source activate TFlite
+tflite_convert \
+--graph_def_file=/home/chen/Documents/deeplearning-models-master/tensorflow1_ipynb/autoencoder/ae-conv.pb \
+--output_file=/home/chen/Documents/deeplearning-models-master/tensorflow1_ipynb/autoencoder/ae-conv.lite \
+--output_format=TFLITE \
+--input_shapes=15,784 \
+--input_arrays=input \
+--output_arrays=decoding \
+--inference_type=FLOAT
+"""

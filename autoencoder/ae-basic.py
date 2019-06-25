@@ -176,3 +176,14 @@ for i in range(n_images):
         ax[i].imshow(img[i].reshape((image_width, image_width)), cmap='binary')
 
 plt.savefig("result_ae-basic.png")
+"""
+source activate TFlite
+tflite_convert \
+--graph_def_file=/home/chen/Documents/deeplearning-models-master/tensorflow1_ipynb/autoencoder/ae-basic.pb \
+--output_file=/home/chen/Documents/deeplearning-models-master/tensorflow1_ipynb/autoencoder/ae-basic.lite \
+--output_format=TFLITE \
+--input_shapes=15,784 \
+--input_arrays=input \
+--output_arrays=decoding \
+--inference_type=FLOAT
+"""

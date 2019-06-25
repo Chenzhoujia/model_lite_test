@@ -31,7 +31,7 @@ def load_graph(frozen_graph_filename):
 
 if __name__ == '__main__':
 
-    frozen_model_filename = "./ae-basic.pb"
+    frozen_model_filename = "./ae-conv.pb"
     # 从pb文件中读取图结构
     graph = load_graph(frozen_model_filename)
 
@@ -53,7 +53,8 @@ if __name__ == '__main__':
     fig, axes = plt.subplots(nrows=2, ncols=n_images,
                              sharex=True, sharey=True, figsize=(20, 2.5))
     test_images = mnist.test.images[:n_images]
-
+    np.savetxt("./test_image.txt", test_images, fmt='%f', delimiter=',')
+    test_images = np.loadtxt('./test_image.txt', delimiter=',')
     # We launch a Session
     with tf.Session(graph=graph) as sess:
         # 不用执行初始化，因为全是常量
@@ -63,4 +64,4 @@ for i in range(n_images):
     for ax, img in zip(axes, [test_images, decoded]):
         ax[i].imshow(img[i].reshape((image_width, image_width)), cmap='binary')
 
-plt.savefig("result_ae-basic-pb.png")
+plt.savefig("result_ae-conv-pb.png")
